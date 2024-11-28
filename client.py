@@ -5,9 +5,12 @@ import uuid #Universally Unique Identifier
 import time
 from functools import wraps
 
+# Set the target server address
+target = 'localhost:8082'
+
 #TODO: Controllare altri codici di errore   
 def send_request(request_method, request, metadata: list[tuple[str, str]] = None, timeout: int = 10):
-    retry_attempts = 1
+    retry_attempts = 5
     for attempt in range(retry_attempts):
         try:
             return request_method(request, timeout, metadata)
@@ -36,61 +39,90 @@ def send_request(request_method, request, metadata: list[tuple[str, str]] = None
                 raise
 
 def run():
-    # Set the target server address
-    target = 'localhost:50051'
-    
-    email = "claude@icio.com"
-    requestid = uuid.uuid4()
-    #requestid = 8
 
-    # Convert long integers to strings, as metadata values must be strings
+    while(True):
+        print("Type 1 for Manage User Service, 2 for Stock Service, then press ENTER")
+        service = int(input())
+        if (service==1):
+            print("Type 1 to register a new user, 2 to update an existing user, 3 to delete an existing user, then press ENTER")
+            request = int(input())
+            if(request == 1):
+                print("Insert your email, then press ENTER")
+                email = input()
+                print("Insert the ticker of your interest, then press ENTER")
+                ticker=input()
+                manage_user(request, email, ticker)
+            elif(request == 2):
+                print("Insert your email, then press ENTER")
+                email = input()
+                print("Insert the new ticker, then press ENTER")
+                ticker = input()
+                manage_user(request, email, ticker)
+            elif(request == 3):
+                print("Insert your email, then press ENTER")
+                email=input()
+                manage_user(request, email)
+        elif(service == 2):
+            print("Type 1 to get the latest stock price, 2 to get an average stock price, then press ENTER")
+            request = int(input())
+            if(request == 1):
+                print("Type your email, then press ENTER")
+                email = input()
+                stock_service(request, email)
+            if(request == 2):
+                print("Type your email, then press ENTER")
+                email = input()
+                print("Type the number of the latest stock values to be included")
+                num_values = int(input())
+                stock_service(request, email, num_values)
+
+            
+
+def manage_user(request: int, email: str, ticker: str = None) -> None:
     metadata = [
         ('email', email),
-        ('requestid', str(requestid))
+        ('requestid', str(uuid.uuid4()))
     ]
 
-    # Establish a connection to the gRPC server
-
     with grpc.insecure_channel(target) as channel:
-        # Create a stub (client) for the EchoService
         stub = hw1_pb2_grpc.ManageUserServiceStub(channel)
-        registerRequest = hw1_pb2.RegisterUserRequest(email="alchemai@deleit.com", ticker="icio")
-        updateRequest = hw1_pb2.UpdateUserRequest(email="pluto@icio.com", ticker="ocio")
-        deleteRequest = hw1_pb2.DeleteUserRequest(email="prova@icio.com")
-
         try:
-            registerResponse = send_request(stub.RegisterUser, registerRequest, metadata)
-            print("Response: ", registerResponse.outcome)
-
-            """ updateResponse = send_request(stub.UpdateUser, updateRequest, metadata)
-            print("Response: ", updateResponse.outcome)
-
-            deleteResponse = send_request(stub.DeleteUser, deleteRequest, metadata)
-            print("Response: ", deleteResponse.outcome) """
-
+            if(request == 1):
+                remote_request = hw1_pb2.RegisterUserRequest(email=email, ticker=ticker)
+                response = send_request(stub.RegisterUser, remote_request, metadata)
+                print("Response: ", response.outcome)
+            elif(request == 2):
+                remote_request = hw1_pb2.RegisterUserRequest(email=email, ticker=ticker)
+                response = send_request(stub.UpdateUser, remote_request, metadata)
+                print("Response: ", response.outcome)
+            elif(request == 3):
+                remote_request = hw1_pb2.DeleteUserRequest(email=email)
+                response = send_request(stub.DeleteUser, remote_request, metadata)
+                print("Response: ", response.outcome)
+        
         except Exception as e:
             print(e)
 
+    
+def stock_service(request: int, email: str, num_values: int = None) -> None:
+    with grpc.insecure_channel(target) as channel:
         stub = hw1_pb2_grpc.StockServiceStub(channel)
-        last_stock_value_request = hw1_pb2.GetLastStockValueRequest(email="claude@icio.com")
-
         try:
-            last_stock_value = send_request(stub.getLastStockValue, last_stock_value_request)
-            print(f"Ticker: {last_stock_value.ticker}, "
-                  f"Value: {last_stock_value.last_value} || "
-                  f"Last updated at: {last_stock_value.timestamp}")
+            if(request == 1):
+                remote_request = hw1_pb2.GetLastStockValueRequest(email=email)
+                response = send_request(stub.getLastStockValue, remote_request)
+                print(f"Ticker: {response.ticker}, "
+                f"Value: {response.last_value} || "
+                f"Last updated at: {response.timestamp}")
+            elif(request == 2):
+                remote_request = hw1_pb2.GetStockPriceAverageRequest(email=email, num_values=num_values)
+                response = send_request(stub.getStockPriceAverage, remote_request)
+                print(f"Ticker: {response.ticker}, "
+                f"Average price: {response.average_price}, "
+                f"Values: {response.num_values}, || "
+                f"Last updated at {response.timestamp}")
+
         except Exception as e:
-            print(e)
-
-        stock_price_average_request = hw1_pb2.GetStockPriceAverageRequest(email="alchemai@deleit.com", num_values=3)
-
-        try:
-            stock_price_average = send_request(stub.getStockPriceAverage, stock_price_average_request)
-            print(f"Ticker: {stock_price_average.ticker}, "
-                  f"Average price: {stock_price_average.average_price}, "
-                  f"Values: {stock_price_average.num_values}, || "
-                  f"Last updated at {stock_price_average.timestamp}")
-        except Exception as e: 
             print(e)
 
 if __name__ == '__main__':

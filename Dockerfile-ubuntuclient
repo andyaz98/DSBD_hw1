@@ -1,9 +1,0 @@
-FROM ubuntu
-
-RUN apt update &&\
-apt install -y default-mysql-client &&\ 
-apt install -y iputils-ping && \
-apt install -y net-tools
-
-ENTRYPOINT ["/bin/sh"]
-#CMD mysql -h mysqldb -P 3306 -u andrea -p

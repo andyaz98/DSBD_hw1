@@ -14,7 +14,7 @@ request_cache = {}
 cache_lock = Lock()
 
 db = mysql.connector.connect(
-    host="localhost",
+    host="hw1_db_container",
     user="andrea",
     password="password",
     database="hw1"

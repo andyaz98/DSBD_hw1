@@ -8,7 +8,7 @@ from circuit_breaker import CircuitBreaker, CircuitBreakerOpenException
 
 
 db = connector.connect(
-    host="localhost",
+    host="hw1_db_container",
     user="andrea",
     password="password",
     database="hw1"

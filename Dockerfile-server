@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.13
 
 WORKDIR /app
 EXPOSE 50051
@@ -11,7 +11,4 @@ COPY hw1_pb2.pyi /app/
 RUN pip install grpcio grpcio-tools google-api-python-client mysql-connector-python
 CMD python server.py
 
-#attenzione!
-#avviare il container con -i -t
-# specificare il nome del volume o del path di bind mounth
-# specificare il port mapping <host port>:50051
+
