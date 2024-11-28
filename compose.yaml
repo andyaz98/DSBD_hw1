@@ -8,13 +8,14 @@ services:
             MYSQL_DATABASE: hw1
             MYSQL_USER: andrea
             MYSQL_PASSWORD: password
-        ports: 
-          - 3306:3306
+        ports:
+            - 3306:3306
         volumes:
             - hw1_volume:/var/lib/mysql
         container_name: hw1_db_container
 
-    db_client: #Solo per il testing del DB
+    db_client:
+        #Solo per il testing del DB
         build:
             context: .
             dockerfile: Dockerfile-ubuntuclient
@@ -27,11 +28,10 @@ services:
         depends_on:
             - db
         container_name: hw1_db_client_container
-        stdin_open: true  # Mantiene lo standard input aperto
-        tty: true         # Avvia con un terminale virtuale
+        stdin_open: true # Mantiene lo standard input aperto
+        tty: true # Avvia con un terminale virtuale
         restart: always
-        
-    
-    
-volumes: 
+
+volumes:
     hw1_volume:
+        driver: local

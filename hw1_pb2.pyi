@@ -4,7 +4,7 @@ from typing import ClassVar as _ClassVar, Optional as _Optional
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class Register(_message.Message):
+class RegisterUserRequest(_message.Message):
     __slots__ = ("email", "ticker")
     EMAIL_FIELD_NUMBER: _ClassVar[int]
     TICKER_FIELD_NUMBER: _ClassVar[int]
@@ -12,7 +12,7 @@ class Register(_message.Message):
     ticker: str
     def __init__(self, email: _Optional[str] = ..., ticker: _Optional[str] = ...) -> None: ...
 
-class Update(_message.Message):
+class UpdateUserRequest(_message.Message):
     __slots__ = ("email", "ticker")
     EMAIL_FIELD_NUMBER: _ClassVar[int]
     TICKER_FIELD_NUMBER: _ClassVar[int]
@@ -20,13 +20,13 @@ class Update(_message.Message):
     ticker: str
     def __init__(self, email: _Optional[str] = ..., ticker: _Optional[str] = ...) -> None: ...
 
-class Delete(_message.Message):
+class DeleteUserRequest(_message.Message):
     __slots__ = ("email",)
     EMAIL_FIELD_NUMBER: _ClassVar[int]
     email: str
     def __init__(self, email: _Optional[str] = ...) -> None: ...
 
-class Reply(_message.Message):
+class UserActionResponse(_message.Message):
     __slots__ = ("outcome",)
     OUTCOME_FIELD_NUMBER: _ClassVar[int]
     outcome: str

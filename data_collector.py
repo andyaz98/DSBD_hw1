@@ -41,8 +41,10 @@ def data_collector():
         time.sleep(1)
 
 def fetch_multiple_stock_prices(tickers: list[str]) -> dict[str, np.float64]:
+    #Test 
     if random.random() < 0.5:
         raise Exception("Test Exception")
+    
     data = yf.download(tickers, period="1d", group_by="ticker")
     prices = {}
 

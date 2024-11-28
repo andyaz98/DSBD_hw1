@@ -40,8 +40,8 @@ def run():
     target = 'localhost:50051'
     
     email = "claude@icio.com"
-    #requestid = uuid.uuid4()
-    requestid = 8
+    requestid = uuid.uuid4()
+    #requestid = 8
 
     # Convert long integers to strings, as metadata values must be strings
     metadata = [
@@ -53,23 +53,23 @@ def run():
 
     with grpc.insecure_channel(target) as channel:
         # Create a stub (client) for the EchoService
-        stub = hw1_pb2_grpc.ManageUserStub(channel)
-        registerRequest = hw1_pb2.Register(email="alchemai@deleit.com", ticker="icio")
-        updateRequest = hw1_pb2.Update(email="pluto@icio.com", ticker="ocio")
-        deleteRequest = hw1_pb2.Delete(email="prova@icio.com")
+        stub = hw1_pb2_grpc.ManageUserServiceStub(channel)
+        registerRequest = hw1_pb2.RegisterUserRequest(email="alchemai@deleit.com", ticker="icio")
+        updateRequest = hw1_pb2.UpdateUserRequest(email="pluto@icio.com", ticker="ocio")
+        deleteRequest = hw1_pb2.DeleteUserRequest(email="prova@icio.com")
 
         try:
-            registerResponse = send_request(stub.RegisterMessage, registerRequest, metadata)
+            registerResponse = send_request(stub.RegisterUser, registerRequest, metadata)
             print("Response: ", registerResponse.outcome)
 
-            """ updateResponse = send_request(stub.UpdateMessage, updateRequest, metadata)
+            """ updateResponse = send_request(stub.UpdateUser, updateRequest, metadata)
             print("Response: ", updateResponse.outcome)
 
-            deleteResponse = send_request(stub.DeleteMessage, deleteRequest, metadata)
+            deleteResponse = send_request(stub.DeleteUser, deleteRequest, metadata)
             print("Response: ", deleteResponse.outcome) """
 
-        except:
-            print("Service 1 test: failed after too many attempts")
+        except Exception as e:
+            print(e)
 
         stub = hw1_pb2_grpc.StockServiceStub(channel)
         last_stock_value_request = hw1_pb2.GetLastStockValueRequest(email="claude@icio.com")

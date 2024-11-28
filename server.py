@@ -22,18 +22,18 @@ db = mysql.connector.connect(
 
 db_cursor = db.cursor()
 
-class ManageUser(hw1_pb2_grpc.ManageUserServicer):
-    def RegisterMessage(self, request: hw1_pb2.Register, context) -> hw1_pb2.Reply:
+class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
+    def RegisterUser(self, request: hw1_pb2.RegisterUserRequest, context) -> hw1_pb2.UserActionResponse:
         db_query = f"INSERT INTO users VALUES('{request.email}','{request.ticker}')"
         response_message = f"Email: {request.email}, Ticker: {request.ticker}"
         return at_most_once(context, db_query, response_message)
         
-    def UpdateMessage(self, request: hw1_pb2.Update, context) -> hw1_pb2.Reply:
+    def UpdateUser(self, request: hw1_pb2.UpdateUserRequest, context) -> hw1_pb2.UserActionResponse:
         db_query = f"UPDATE users SET ticker = '{request.ticker}' WHERE email = '{request.email}'"
         response_message = f"Email: {request.email}, updatedTicker: {request.ticker}"
         return at_most_once(context, db_query, response_message)
     
-    def DeleteMessage(self, request :hw1_pb2.Delete, context) -> hw1_pb2.Reply:
+    def DeleteUser(self, request :hw1_pb2.DeleteUserRequest, context) -> hw1_pb2.UserActionResponse:
         db_query = f"DELETE FROM users WHERE email = '{request.email}'"
         response_message = f"Removed email: {request.email}"
         return at_most_once(context, db_query, response_message)
@@ -103,7 +103,7 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
         
         return response
     
-def at_most_once(context, query: str, response_message: str) -> hw1_pb2.Reply:
+def at_most_once(context, query: str, response_message: str) -> hw1_pb2.UserActionResponse:
         metadata = dict(context.invocation_metadata())
 
         email = metadata.get('email', 'unknown')
@@ -128,7 +128,7 @@ def at_most_once(context, query: str, response_message: str) -> hw1_pb2.Reply:
             print(f"MySQL error: {e}")
 
         db.commit()
-        response = hw1_pb2.Reply(outcome=response_message)
+        response = hw1_pb2.UserActionResponse(outcome=response_message)
 
         with cache_lock:
             request_cache[requestid] = response
@@ -140,7 +140,7 @@ def serve():
     # Initialize a thread pool with 10 workers
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     # Register the EchoService with the server
-    hw1_pb2_grpc.add_ManageUserServicer_to_server(ManageUser(), server)
+    hw1_pb2_grpc.add_ManageUserServiceServicer_to_server(ManageUserService(), server)
     hw1_pb2_grpc.add_StockServiceServicer_to_server(StockService(), server)
     # Bind the server to the specified port
     server.add_insecure_port('[::]:' + port)

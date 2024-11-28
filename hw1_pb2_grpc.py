@@ -25,7 +25,7 @@ if _version_not_supported:
     )
 
 
-class ManageUserStub(object):
+class ManageUserServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -34,75 +34,75 @@ class ManageUserStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.RegisterMessage = channel.unary_unary(
-                '/hw1.ManageUser/RegisterMessage',
-                request_serializer=hw1__pb2.Register.SerializeToString,
-                response_deserializer=hw1__pb2.Reply.FromString,
+        self.RegisterUser = channel.unary_unary(
+                '/hw1.ManageUserService/RegisterUser',
+                request_serializer=hw1__pb2.RegisterUserRequest.SerializeToString,
+                response_deserializer=hw1__pb2.UserActionResponse.FromString,
                 _registered_method=True)
-        self.UpdateMessage = channel.unary_unary(
-                '/hw1.ManageUser/UpdateMessage',
-                request_serializer=hw1__pb2.Update.SerializeToString,
-                response_deserializer=hw1__pb2.Reply.FromString,
+        self.UpdateUser = channel.unary_unary(
+                '/hw1.ManageUserService/UpdateUser',
+                request_serializer=hw1__pb2.UpdateUserRequest.SerializeToString,
+                response_deserializer=hw1__pb2.UserActionResponse.FromString,
                 _registered_method=True)
-        self.DeleteMessage = channel.unary_unary(
-                '/hw1.ManageUser/DeleteMessage',
-                request_serializer=hw1__pb2.Delete.SerializeToString,
-                response_deserializer=hw1__pb2.Reply.FromString,
+        self.DeleteUser = channel.unary_unary(
+                '/hw1.ManageUserService/DeleteUser',
+                request_serializer=hw1__pb2.DeleteUserRequest.SerializeToString,
+                response_deserializer=hw1__pb2.UserActionResponse.FromString,
                 _registered_method=True)
 
 
-class ManageUserServicer(object):
+class ManageUserServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def RegisterMessage(self, request, context):
+    def RegisterUser(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def UpdateMessage(self, request, context):
+    def UpdateUser(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def DeleteMessage(self, request, context):
+    def DeleteUser(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
 
-def add_ManageUserServicer_to_server(servicer, server):
+def add_ManageUserServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'RegisterMessage': grpc.unary_unary_rpc_method_handler(
-                    servicer.RegisterMessage,
-                    request_deserializer=hw1__pb2.Register.FromString,
-                    response_serializer=hw1__pb2.Reply.SerializeToString,
+            'RegisterUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.RegisterUser,
+                    request_deserializer=hw1__pb2.RegisterUserRequest.FromString,
+                    response_serializer=hw1__pb2.UserActionResponse.SerializeToString,
             ),
-            'UpdateMessage': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateMessage,
-                    request_deserializer=hw1__pb2.Update.FromString,
-                    response_serializer=hw1__pb2.Reply.SerializeToString,
+            'UpdateUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateUser,
+                    request_deserializer=hw1__pb2.UpdateUserRequest.FromString,
+                    response_serializer=hw1__pb2.UserActionResponse.SerializeToString,
             ),
-            'DeleteMessage': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteMessage,
-                    request_deserializer=hw1__pb2.Delete.FromString,
-                    response_serializer=hw1__pb2.Reply.SerializeToString,
+            'DeleteUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteUser,
+                    request_deserializer=hw1__pb2.DeleteUserRequest.FromString,
+                    response_serializer=hw1__pb2.UserActionResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'hw1.ManageUser', rpc_method_handlers)
+            'hw1.ManageUserService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('hw1.ManageUser', rpc_method_handlers)
+    server.add_registered_method_handlers('hw1.ManageUserService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class ManageUser(object):
+class ManageUserService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def RegisterMessage(request,
+    def RegisterUser(request,
             target,
             options=(),
             channel_credentials=None,
@@ -115,9 +115,9 @@ class ManageUser(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/hw1.ManageUser/RegisterMessage',
-            hw1__pb2.Register.SerializeToString,
-            hw1__pb2.Reply.FromString,
+            '/hw1.ManageUserService/RegisterUser',
+            hw1__pb2.RegisterUserRequest.SerializeToString,
+            hw1__pb2.UserActionResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -129,7 +129,7 @@ class ManageUser(object):
             _registered_method=True)
 
     @staticmethod
-    def UpdateMessage(request,
+    def UpdateUser(request,
             target,
             options=(),
             channel_credentials=None,
@@ -142,9 +142,9 @@ class ManageUser(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/hw1.ManageUser/UpdateMessage',
-            hw1__pb2.Update.SerializeToString,
-            hw1__pb2.Reply.FromString,
+            '/hw1.ManageUserService/UpdateUser',
+            hw1__pb2.UpdateUserRequest.SerializeToString,
+            hw1__pb2.UserActionResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -156,7 +156,7 @@ class ManageUser(object):
             _registered_method=True)
 
     @staticmethod
-    def DeleteMessage(request,
+    def DeleteUser(request,
             target,
             options=(),
             channel_credentials=None,
@@ -169,9 +169,9 @@ class ManageUser(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/hw1.ManageUser/DeleteMessage',
-            hw1__pb2.Delete.SerializeToString,
-            hw1__pb2.Reply.FromString,
+            '/hw1.ManageUserService/DeleteUser',
+            hw1__pb2.DeleteUserRequest.SerializeToString,
+            hw1__pb2.UserActionResponse.FromString,
             options,
             channel_credentials,
             insecure,

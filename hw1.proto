@@ -2,27 +2,27 @@ syntax = "proto3";
 
 package hw1;
 
-service ManageUser {
-  rpc RegisterMessage (Register) returns (Reply) {}
-  rpc UpdateMessage (Update) returns (Reply) {}
-  rpc DeleteMessage (Delete) returns (Reply) {}
+service ManageUserService {
+  rpc RegisterUser (RegisterUserRequest) returns (UserActionResponse) {}
+  rpc UpdateUser (UpdateUserRequest) returns (UserActionResponse) {}
+  rpc DeleteUser (DeleteUserRequest) returns (UserActionResponse) {}
 }
 
-message Register {
+message RegisterUserRequest {
   string email = 1;
   string ticker = 2;
 }
 
-message Update {
+message UpdateUserRequest {
   string email = 1;
   string ticker = 2;
 }
 
-message Delete {
+message DeleteUserRequest {
   string email = 1;
 }
 
-message Reply {
+message UserActionResponse {
   string outcome = 1;
 }
 
