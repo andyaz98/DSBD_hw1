@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package hw1;
+
+service ManageUser {
+  rpc RegisterMessage (Register) returns (Reply) {}
+  rpc UpdateMessage (Update) returns (Reply) {}
+  rpc DeleteMessage (Delete) returns (Reply) {}
+}
+
+message Register {
+  string email = 1;
+  string ticker = 2;
+}
+
+message Update {
+  string email = 1;
+  string ticker = 2;
+}
+
+message Delete {
+  string email = 1;
+}
+
+message Reply {
+  string outcome = 1;
+}
+
+service StockService {
+  rpc getLastStockValue (GetLastStockValueRequest) returns (GetLastStockValueResponse);
+  rpc getStockPriceAverage (GetStockPriceAverageRequest) returns (GetStockPriceAverageResponse);
+}
+
+message GetLastStockValueRequest {
+  string email = 1; 
+}
+
+message GetLastStockValueResponse {
+  string ticker = 1; 
+  float last_value = 2; 
+  string timestamp = 3;  
+}
+
+message GetStockPriceAverageRequest {
+  string email = 1; 
+  int32 num_values = 2;  
+}
+
+message GetStockPriceAverageResponse {
+  string ticker = 1;  
+  float average_price = 2;  
+  int32 num_values = 3;  
+  string timestamp = 4;  
+}
