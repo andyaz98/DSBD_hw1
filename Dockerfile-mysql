@@ -1,17 +1,12 @@
-#Usa un'immagine MySQL ufficiale come base
 FROM mysql:5.6
 
-# Variabili d'ambiente peril database, l'utente e la password
 ENV MYSQL_ROOT_PASSWORD=root
 ENV MYSQL_DATABASE=hw1
 ENV MYSQL_USER=andrea
 ENV MYSQL_PASSWORD=password
 
-# Definisci il percorso del bind mount per i dati del database
+
 VOLUME /var/lib/mysql
 EXPOSE 3306
 
-#attenzione!
-#avviare il container con -i -t
-# specificare il nome del volume o del path di bind mounth
-# specificare il port mapping <host port>:3306
+

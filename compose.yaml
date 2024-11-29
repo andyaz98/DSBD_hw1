@@ -35,7 +35,6 @@ services:
             - db
         restart: always
         tty: true
-
 volumes:
     hw1_volume:
         driver: local

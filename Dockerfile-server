@@ -4,6 +4,7 @@ WORKDIR /app
 EXPOSE 50051
 
 COPY server.py /app/
+COPY email_verifier.py /app/
 COPY hw1_pb2_grpc.py /app/
 COPY hw1_pb2.py /app/
 COPY hw1_pb2.pyi /app/

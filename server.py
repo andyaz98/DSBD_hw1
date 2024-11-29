@@ -6,6 +6,7 @@ import hw1_pb2_grpc
 import time
 from threading import Lock
 import mysql.connector
+from email_verifier import is_valid_email
 
 # A dictionary to store processed request IDs and their responses
 request_cache = {}
@@ -24,22 +25,34 @@ db_cursor = db.cursor()
 
 class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
     def RegisterUser(self, request: hw1_pb2.RegisterUserRequest, context) -> hw1_pb2.UserActionResponse:
+        if not is_valid_email(request.email):
+            raise Exception("Email not valid")
+        
         db_query = f"INSERT INTO users VALUES('{request.email}','{request.ticker}')"
         response_message = f"Email: {request.email}, Ticker: {request.ticker}"
         return at_most_once(context, db_query, response_message)
         
     def UpdateUser(self, request: hw1_pb2.UpdateUserRequest, context) -> hw1_pb2.UserActionResponse:
+        if not is_valid_email(request.email):
+            raise Exception("Email not valid")
+        
         db_query = f"UPDATE users SET ticker = '{request.ticker}' WHERE email = '{request.email}'"
         response_message = f"Email: {request.email}, updatedTicker: {request.ticker}"
         return at_most_once(context, db_query, response_message)
     
     def DeleteUser(self, request :hw1_pb2.DeleteUserRequest, context) -> hw1_pb2.UserActionResponse:
+        if not is_valid_email(request.email):
+            raise Exception("Email not valid")
+        
         db_query = f"DELETE FROM users WHERE email = '{request.email}'"
         response_message = f"Removed email: {request.email}"
         return at_most_once(context, db_query, response_message)
     
 class StockService(hw1_pb2_grpc.StockServiceServicer):
     def getLastStockValue(self, request: hw1_pb2.GetLastStockValueRequest, context) -> hw1_pb2.GetLastStockValueResponse:
+        if not is_valid_email(request.email):
+            raise Exception("Email not valid")
+
         db_query = f"SELECT\
                         d.ticker AS ticker,\
                         d.value AS last_value,\
@@ -60,7 +73,12 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
 
         db_cursor.execute(db_query)
 
-        ticker, last_value, timestamp = db_cursor.fetchone()
+        row = db_cursor.fetchone()
+
+        if row is None:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "No value found")
+        
+        ticker, last_value, timestamp = row
         response = hw1_pb2.GetLastStockValueResponse(ticker=ticker,
                                                      last_value=last_value,
                                                      timestamp=str(timestamp))
@@ -70,6 +88,9 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
     def getStockPriceAverage(self,
                              request: hw1_pb2.GetStockPriceAverageRequest,
                              context) -> hw1_pb2.GetStockPriceAverageResponse:
+        if not is_valid_email(request.email):
+            raise Exception("Email not valid")
+        
         db_query = f"SELECT\
                         ticker,\
                         AVG(value) AS average_value,\
@@ -95,7 +116,13 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
         
         db_cursor.execute(db_query)
 
-        ticker, average_price, timestamp = db_cursor.fetchone()
+        row = db_cursor.fetchone()
+
+        if row is None:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Insufficient number of values")
+        
+        ticker, average_price, timestamp = row
+
         response = hw1_pb2.GetStockPriceAverageResponse(ticker=ticker,
                                                         average_price=average_price,
                                                         num_values=request.num_values,
@@ -145,7 +172,7 @@ def serve():
     # Bind the server to the specified port
     server.add_insecure_port('[::]:' + port)
     server.start()
-    print("Echo Service started, listening on " + port)
+    print("Service started, listening on " + port)
     server.wait_for_termination()
 
 
