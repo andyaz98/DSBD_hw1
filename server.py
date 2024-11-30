@@ -70,6 +70,14 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
                             FROM data d1\
                             WHERE d1.ticker = d.ticker\
                         )"
+        
+        db = mysql.connector.connect(
+        host="hw1_db_container",
+        user="andrea",
+        password="password",
+        database="hw1")
+
+        db_cursor = db.cursor()
 
         db_cursor.execute(db_query)
 
@@ -90,6 +98,14 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
                              context) -> hw1_pb2.GetStockPriceAverageResponse:
         if not is_valid_email(request.email):
             raise Exception("Email not valid")
+        
+        db = mysql.connector.connect(
+        host="hw1_db_container",
+        user="andrea",
+        password="password",
+        database="hw1")
+
+        db_cursor = db.cursor()
         
         db_query = f"SELECT\
                         ticker,\

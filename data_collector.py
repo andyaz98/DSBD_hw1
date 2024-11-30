@@ -6,39 +6,46 @@ import random
 
 from circuit_breaker import CircuitBreaker, CircuitBreakerOpenException
 
-
-db = connector.connect(
-    host="hw1_db_container",
-    user="andrea",
-    password="password",
-    database="hw1"
-)
-
-db_cursor = db.cursor()
-
 circuit_breaker = CircuitBreaker(failure_threshold=3, recovery_timeout=5)
 
 def data_collector():
     while(True):
+        db = connector.connect(
+        host="hw1_db_container",
+        user="andrea",
+        password="password",
+        database="hw1")
+
+        db_cursor = db.cursor()
+
         db_query = "SELECT DISTINCT ticker FROM users"
 
         db_cursor.execute(db_query)
 
         db_tickers = [ticker[0] for ticker in db_cursor.fetchall()]
 
+        if len(db_tickers) == 0:
+            print("There are no tickers")
+            time.sleep(1)
+            continue
+
         db_query = "INSERT INTO data (ticker, value) VALUES "
         values = []
         prices = safe_fetch_multiple_stock_prices(db_tickers)
-        if prices == None: 
+        if prices == None:
+            print("No prices for chosen tickers")
+            time.sleep(1)
             continue
 
         for ticker, value in prices.items():
+            if value is None:
+                continue
             values.append(f"('{ticker}', {value})")
         db_query += ", ".join(values)
 
         db_cursor.execute(db_query)
         db.commit()
-        time.sleep(30*60) #Every 30 minutes
+        time.sleep(30 * 60) #Every 30 minutes
 
 def fetch_multiple_stock_prices(tickers: list[str]) -> dict[str, np.float64]:
     #Test 

@@ -8,12 +8,9 @@ services:
             MYSQL_DATABASE: hw1
             MYSQL_USER: andrea
             MYSQL_PASSWORD: password
-        ports:
-            - 3306:3306
         volumes:
             - hw1_volume:/var/lib/mysql
         container_name: hw1_db_container
-
     server:
         build:
             context: .
