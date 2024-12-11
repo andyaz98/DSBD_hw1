@@ -11,27 +11,9 @@ services:
         volumes:
             - hw1_volume:/var/lib/mysql
         container_name: hw1_db_container
-    server:
-        build:
-            context: .
-            dockerfile: Dockerfile-server
         ports:
-            - 8082:50051
-        container_name: hw1_server_container
-        depends_on:
-            - db
-        restart: always
-        tty: true
+            - 3306:3306
 
-    data_collector:
-        build:
-            context: .
-            dockerfile: Dockerfile-data_collector
-        container_name: hw1_data_collector_container
-        depends_on:
-            - db
-        restart: always
-        tty: true
 volumes:
     hw1_volume:
         driver: local

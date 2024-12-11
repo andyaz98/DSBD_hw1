@@ -7,7 +7,7 @@ from functools import wraps
 from email_verifier import is_valid_email
 
 # Set the target server address
-target = 'localhost:8082'
+target = 'localhost:50051'
 
 #TODO: Controllare altri codici di errore   
 def send_request(request_method, request, metadata: list[tuple[str, str]] = None, timeout: int = 10):
@@ -43,12 +43,22 @@ def run():
         print("Type 1 for Manage User Service, 2 for Stock Service, then press ENTER")
         service = input()
         if service == "1":
-            print("Type 1 to register a new user, 2 to update an existing user, 3 to delete an existing user, then press ENTER")
+            print("Type 1 to register a new user, "
+                  "2 to update an existing user, "
+                  "3 to update ticker range, "
+                  "4 to delete an existing user, then press ENTER")
             request = input()
             if request == "1":
                 print("Insert the ticker of your interest, then press ENTER")
                 ticker = input()
-                response = manage_user(int(request), email, ticker)
+
+                print("Insert low value, then press ENTER")
+                low_value = input()
+
+                print("Insert high value, then press ENTER")
+                high_value = input()
+
+                response = manage_user(int(request), email, ticker, float(low_value), float(high_value))
                 print("Response: ", response.outcome)
             elif request == "2":
                 print("Insert the new ticker, then press ENTER")
@@ -56,6 +66,15 @@ def run():
                 response = manage_user(int(request), email, ticker)
                 print("Response: ", response.outcome)
             elif request == "3":
+                print("Insert low value, then press ENTER")
+                low_value = input()
+
+                print("Insert high value, then press ENTER")
+                high_value = input()
+
+                response = manage_user(int(request), email, low_value=float(low_value), high_value=float(high_value))
+                print("Response: ", response.outcome)
+            elif request == "4":
                 response = manage_user(int(request), email)
                 print("Response: ", response.outcome)
             else:
@@ -96,7 +115,7 @@ def run():
 
             
 
-def manage_user(request: int, email: str, ticker: str = None):
+def manage_user(request: int, email: str, ticker: str = None, low_value: float = None, high_value: float = None):
     metadata = [
         ('email', email),
         ('requestid', str(uuid.uuid4()))
@@ -109,12 +128,15 @@ def manage_user(request: int, email: str, ticker: str = None):
             stub = hw1_pb2_grpc.ManageUserServiceStub(channel)
             try:
                 if(request == 1):
-                    remote_request = hw1_pb2.RegisterUserRequest(email=email, ticker=ticker)
+                    remote_request = hw1_pb2.RegisterUserRequest(email=email, ticker=ticker, low_value=low_value, high_value=high_value)
                     return stub.RegisterUser(remote_request, timeout, metadata)
                 elif(request == 2):
-                    remote_request = hw1_pb2.UpdateUserRequest(email=email, ticker=ticker)
-                    return stub.UpdateUser(remote_request, timeout, metadata)
+                    remote_request = hw1_pb2.UpdateTickerRequest(email=email, ticker=ticker)
+                    return stub.UpdateTicker(remote_request, timeout, metadata)
                 elif(request == 3):
+                    remote_request = hw1_pb2.UpdateTickerRangeRequest(email=email, low_value=low_value, high_value=high_value)
+                    return stub.UpdateTickerRange(remote_request, timeout, metadata)
+                elif(request == 4):
                     remote_request = hw1_pb2.DeleteUserRequest(email=email)
                     return stub.DeleteUser(remote_request, timeout, metadata)
             except grpc.RpcError as e:

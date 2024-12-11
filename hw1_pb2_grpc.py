@@ -39,10 +39,15 @@ class ManageUserServiceStub(object):
                 request_serializer=hw1__pb2.RegisterUserRequest.SerializeToString,
                 response_deserializer=hw1__pb2.UserActionResponse.FromString,
                 _registered_method=True)
-        self.UpdateUser = channel.unary_unary(
-                '/hw1.ManageUserService/UpdateUser',
-                request_serializer=hw1__pb2.UpdateUserRequest.SerializeToString,
+        self.UpdateTicker = channel.unary_unary(
+                '/hw1.ManageUserService/UpdateTicker',
+                request_serializer=hw1__pb2.UpdateTickerRequest.SerializeToString,
                 response_deserializer=hw1__pb2.UserActionResponse.FromString,
+                _registered_method=True)
+        self.UpdateTickerRange = channel.unary_unary(
+                '/hw1.ManageUserService/UpdateTickerRange',
+                request_serializer=hw1__pb2.UpdateTickerRangeRequest.SerializeToString,
+                response_deserializer=hw1__pb2.UpdateTickerRangeResponse.FromString,
                 _registered_method=True)
         self.DeleteUser = channel.unary_unary(
                 '/hw1.ManageUserService/DeleteUser',
@@ -60,7 +65,13 @@ class ManageUserServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def UpdateUser(self, request, context):
+    def UpdateTicker(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UpdateTickerRange(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -80,10 +91,15 @@ def add_ManageUserServiceServicer_to_server(servicer, server):
                     request_deserializer=hw1__pb2.RegisterUserRequest.FromString,
                     response_serializer=hw1__pb2.UserActionResponse.SerializeToString,
             ),
-            'UpdateUser': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateUser,
-                    request_deserializer=hw1__pb2.UpdateUserRequest.FromString,
+            'UpdateTicker': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateTicker,
+                    request_deserializer=hw1__pb2.UpdateTickerRequest.FromString,
                     response_serializer=hw1__pb2.UserActionResponse.SerializeToString,
+            ),
+            'UpdateTickerRange': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateTickerRange,
+                    request_deserializer=hw1__pb2.UpdateTickerRangeRequest.FromString,
+                    response_serializer=hw1__pb2.UpdateTickerRangeResponse.SerializeToString,
             ),
             'DeleteUser': grpc.unary_unary_rpc_method_handler(
                     servicer.DeleteUser,
@@ -129,7 +145,7 @@ class ManageUserService(object):
             _registered_method=True)
 
     @staticmethod
-    def UpdateUser(request,
+    def UpdateTicker(request,
             target,
             options=(),
             channel_credentials=None,
@@ -142,9 +158,36 @@ class ManageUserService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/hw1.ManageUserService/UpdateUser',
-            hw1__pb2.UpdateUserRequest.SerializeToString,
+            '/hw1.ManageUserService/UpdateTicker',
+            hw1__pb2.UpdateTickerRequest.SerializeToString,
             hw1__pb2.UserActionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateTickerRange(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/hw1.ManageUserService/UpdateTickerRange',
+            hw1__pb2.UpdateTickerRangeRequest.SerializeToString,
+            hw1__pb2.UpdateTickerRangeResponse.FromString,
             options,
             channel_credentials,
             insecure,

@@ -1,0 +1,21 @@
+server:
+        build:
+            context: .
+            dockerfile: Dockerfile-server
+        ports:
+            - 8082:50051
+        container_name: hw1_server_container
+        depends_on:
+            - db
+        restart: always
+        tty: true
+
+    data_collector:
+        build:
+            context: .
+            dockerfile: Dockerfile-data_collector
+        container_name: hw1_data_collector_container
+        depends_on:
+            - db
+        restart: always
+        tty: true

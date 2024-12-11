@@ -14,30 +14,29 @@ request_cache = {}
 # A lock to synchronize access to the cache for thread safety
 cache_lock = Lock()
 
-db = mysql.connector.connect(
-    host="hw1_db_container",
-    user="andrea",
-    password="password",
-    database="hw1"
-)
-
-db_cursor = db.cursor()
-
 class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
     def RegisterUser(self, request: hw1_pb2.RegisterUserRequest, context) -> hw1_pb2.UserActionResponse:
         if not is_valid_email(request.email):
             raise Exception("Email not valid")
         
-        db_query = f"INSERT INTO users VALUES('{request.email}','{request.ticker}')"
-        response_message = f"Email: {request.email}, Ticker: {request.ticker}"
+        db_query = f"INSERT INTO users VALUES('{request.email}','{request.ticker}','{request.low_value}','{request.high_value}')"
+        response_message = f"Email: {request.email}, Ticker: {request.ticker}, Low value: {request.low_value}, High value: {request.high_value}"
         return at_most_once(context, db_query, response_message)
         
-    def UpdateUser(self, request: hw1_pb2.UpdateUserRequest, context) -> hw1_pb2.UserActionResponse:
+    def UpdateTicker(self, request: hw1_pb2.UpdateTickerRequest, context) -> hw1_pb2.UserActionResponse:
         if not is_valid_email(request.email):
             raise Exception("Email not valid")
         
         db_query = f"UPDATE users SET ticker = '{request.ticker}' WHERE email = '{request.email}'"
         response_message = f"Email: {request.email}, updatedTicker: {request.ticker}"
+        return at_most_once(context, db_query, response_message)
+    
+    def UpdateTickerRange(self, request: hw1_pb2.UpdateTickerRangeRequest, context) -> hw1_pb2.UserActionResponse:
+        if not is_valid_email(request.email):
+            raise Exception("Email not valid")
+        
+        db_query = f"UPDATE users SET low_value = '{request.low_value}', high_value = '{request.high_value}' WHERE email = '{request.email}'"
+        response_message = f"Email: {request.email}, Low value: {request.low_value}, High value: {request.high_value}"
         return at_most_once(context, db_query, response_message)
     
     def DeleteUser(self, request :hw1_pb2.DeleteUserRequest, context) -> hw1_pb2.UserActionResponse:
@@ -52,6 +51,10 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
     def getLastStockValue(self, request: hw1_pb2.GetLastStockValueRequest, context) -> hw1_pb2.GetLastStockValueResponse:
         if not is_valid_email(request.email):
             raise Exception("Email not valid")
+        
+        db = connect_to_db()
+
+        db_cursor = db.cursor()
 
         db_query = f"SELECT\
                         d.ticker AS ticker,\
@@ -70,14 +73,6 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
                             FROM data d1\
                             WHERE d1.ticker = d.ticker\
                         )"
-        
-        db = mysql.connector.connect(
-        host="hw1_db_container",
-        user="andrea",
-        password="password",
-        database="hw1")
-
-        db_cursor = db.cursor()
 
         db_cursor.execute(db_query)
 
@@ -99,11 +94,7 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
         if not is_valid_email(request.email):
             raise Exception("Email not valid")
         
-        db = mysql.connector.connect(
-        host="hw1_db_container",
-        user="andrea",
-        password="password",
-        database="hw1")
+        db = connect_to_db()
 
         db_cursor = db.cursor()
         
@@ -166,6 +157,8 @@ def at_most_once(context, query: str, response_message: str) -> hw1_pb2.UserActi
                 return request_cache[requestid]
              
         try:
+            db = connect_to_db()
+            db_cursor = db.cursor()
             db_cursor.execute(query)
         except Exception as e:
             print(f"MySQL error: {e}")
@@ -191,9 +184,14 @@ def serve():
     print("Service started, listening on " + port)
     server.wait_for_termination()
 
+def connect_to_db():
+    return mysql.connector.connect(
+        host="localhost",
+        user="andrea",
+        password="password",
+        database="hw1"
+    )
 
 if __name__ == '__main__':
     # Start the server without logs (no logging configuration)
     serve()
-    db_cursor.close()
-    db.close()

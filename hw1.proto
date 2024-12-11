@@ -3,19 +3,28 @@ syntax = "proto3";
 package hw1;
 
 service ManageUserService {
-  rpc RegisterUser (RegisterUserRequest) returns (UserActionResponse) {}
-  rpc UpdateUser (UpdateUserRequest) returns (UserActionResponse) {}
-  rpc DeleteUser (DeleteUserRequest) returns (UserActionResponse) {}
+  rpc RegisterUser (RegisterUserRequest) returns (UserActionResponse);
+  rpc UpdateTicker (UpdateTickerRequest) returns (UserActionResponse);
+  rpc UpdateTickerRange (UpdateTickerRangeRequest) returns (UpdateTickerRangeResponse); 
+  rpc DeleteUser (DeleteUserRequest) returns (UserActionResponse);
 }
 
 message RegisterUserRequest {
   string email = 1;
   string ticker = 2;
+  float high_value = 3;
+  float low_value = 4;
 }
 
-message UpdateUserRequest {
+message UpdateTickerRequest {
   string email = 1;
   string ticker = 2;
+}
+
+message UpdateTickerRangeRequest{
+  string email = 1;
+  float high_value = 2;
+  float low_value = 3;
 }
 
 message DeleteUserRequest {
@@ -23,6 +32,10 @@ message DeleteUserRequest {
 }
 
 message UserActionResponse {
+  string outcome = 1;
+}
+
+message UpdateTickerRangeResponse {
   string outcome = 1;
 }
 

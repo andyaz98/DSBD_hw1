@@ -5,6 +5,18 @@ from typing import ClassVar as _ClassVar, Optional as _Optional
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class RegisterUserRequest(_message.Message):
+    __slots__ = ("email", "ticker", "high_value", "low_value")
+    EMAIL_FIELD_NUMBER: _ClassVar[int]
+    TICKER_FIELD_NUMBER: _ClassVar[int]
+    HIGH_VALUE_FIELD_NUMBER: _ClassVar[int]
+    LOW_VALUE_FIELD_NUMBER: _ClassVar[int]
+    email: str
+    ticker: str
+    high_value: float
+    low_value: float
+    def __init__(self, email: _Optional[str] = ..., ticker: _Optional[str] = ..., high_value: _Optional[float] = ..., low_value: _Optional[float] = ...) -> None: ...
+
+class UpdateTickerRequest(_message.Message):
     __slots__ = ("email", "ticker")
     EMAIL_FIELD_NUMBER: _ClassVar[int]
     TICKER_FIELD_NUMBER: _ClassVar[int]
@@ -12,13 +24,15 @@ class RegisterUserRequest(_message.Message):
     ticker: str
     def __init__(self, email: _Optional[str] = ..., ticker: _Optional[str] = ...) -> None: ...
 
-class UpdateUserRequest(_message.Message):
-    __slots__ = ("email", "ticker")
+class UpdateTickerRangeRequest(_message.Message):
+    __slots__ = ("email", "high_value", "low_value")
     EMAIL_FIELD_NUMBER: _ClassVar[int]
-    TICKER_FIELD_NUMBER: _ClassVar[int]
+    HIGH_VALUE_FIELD_NUMBER: _ClassVar[int]
+    LOW_VALUE_FIELD_NUMBER: _ClassVar[int]
     email: str
-    ticker: str
-    def __init__(self, email: _Optional[str] = ..., ticker: _Optional[str] = ...) -> None: ...
+    high_value: float
+    low_value: float
+    def __init__(self, email: _Optional[str] = ..., high_value: _Optional[float] = ..., low_value: _Optional[float] = ...) -> None: ...
 
 class DeleteUserRequest(_message.Message):
     __slots__ = ("email",)
@@ -27,6 +41,12 @@ class DeleteUserRequest(_message.Message):
     def __init__(self, email: _Optional[str] = ...) -> None: ...
 
 class UserActionResponse(_message.Message):
+    __slots__ = ("outcome",)
+    OUTCOME_FIELD_NUMBER: _ClassVar[int]
+    outcome: str
+    def __init__(self, outcome: _Optional[str] = ...) -> None: ...
+
+class UpdateTickerRangeResponse(_message.Message):
     __slots__ = ("outcome",)
     OUTCOME_FIELD_NUMBER: _ClassVar[int]
     outcome: str
