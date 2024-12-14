@@ -7,76 +7,62 @@ import time
 from threading import Lock
 import mysql.connector
 from email_verifier import is_valid_email
-
-# A dictionary to store processed request IDs and their responses
-request_cache = {}
+import CQRS
 
 # A lock to synchronize access to the cache for thread safety
 cache_lock = Lock()
 
 class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
+    def __init__(self):
+        self.manage_user_service = CQRS.ManageUserService()
+        self.request_cache = {} # A dictionary to store processed request IDs and their responses
+
     def RegisterUser(self, request: hw1_pb2.RegisterUserRequest, context) -> hw1_pb2.UserActionResponse:
-        if not is_valid_email(request.email):
-            raise Exception("Email not valid")
-        
-        db_query = f"INSERT INTO users VALUES('{request.email}','{request.ticker}','{request.low_value}','{request.high_value}')"
-        response_message = f"Email: {request.email}, Ticker: {request.ticker}, Low value: {request.low_value}, High value: {request.high_value}"
-        return at_most_once(context, db_query, response_message)
+        try:
+            register_user_command = CQRS.RegisterUserCommand(request.email, request.ticker, request.low_value, request.high_value)
+
+            response_message = f"Email: {request.email}, Ticker: {request.ticker}, Low value: {request.low_value}, High value: {request.high_value}"
+            return at_most_once(context, self.request_cache, self.manage_user_service.handle_register_user, register_user_command, response_message)
+        except:
+            raise
         
     def UpdateTicker(self, request: hw1_pb2.UpdateTickerRequest, context) -> hw1_pb2.UserActionResponse:
-        if not is_valid_email(request.email):
-            raise Exception("Email not valid")
-        
-        db_query = f"UPDATE users SET ticker = '{request.ticker}' WHERE email = '{request.email}'"
-        response_message = f"Email: {request.email}, updatedTicker: {request.ticker}"
-        return at_most_once(context, db_query, response_message)
+        try:
+            update_ticker_command = CQRS.UpdateTickerCommand(request.email, request.ticker)
+
+            response_message = f"Email: {request.email}, Ticker: {request.ticker}"
+            return at_most_once(context, self.request_cache, self.manage_user_service.handle_update_ticker, update_ticker_command, response_message)
+        except:
+            raise
     
     def UpdateTickerRange(self, request: hw1_pb2.UpdateTickerRangeRequest, context) -> hw1_pb2.UserActionResponse:
-        if not is_valid_email(request.email):
-            raise Exception("Email not valid")
-        
-        db_query = f"UPDATE users SET low_value = '{request.low_value}', high_value = '{request.high_value}' WHERE email = '{request.email}'"
-        response_message = f"Email: {request.email}, Low value: {request.low_value}, High value: {request.high_value}"
-        return at_most_once(context, db_query, response_message)
+        try:
+            update_ticker_range_command = CQRS.UpdateTickerRangeCommand(request.email, request.low_value, request.high_value)
+
+            response_message = f"Email: {request.email}, Low value: {request.low_value}, High value: {request.high_value}"
+            return at_most_once(context, self.request_cache, self.manage_user_service.handle_update_ticker_range, update_ticker_range_command, response_message)
+        except:
+            raise
     
     def DeleteUser(self, request :hw1_pb2.DeleteUserRequest, context) -> hw1_pb2.UserActionResponse:
-        if not is_valid_email(request.email):
-            raise Exception("Email not valid")
-        
-        db_query = f"DELETE FROM users WHERE email = '{request.email}'"
-        response_message = f"Removed email: {request.email}"
-        return at_most_once(context, db_query, response_message)
+        try:
+            delete_user_command = CQRS.DeleteUserCommand(request.email)
+
+            response_message = f"Removed Email: {request.email}"
+            return at_most_once(context, self.request_cache, self.manage_user_service.handle_delete_user, delete_user_command, response_message)
+        except:
+            raise
     
 class StockService(hw1_pb2_grpc.StockServiceServicer):
+    def __init__(self):
+        self.stock_service = CQRS.StockService()
+
     def getLastStockValue(self, request: hw1_pb2.GetLastStockValueRequest, context) -> hw1_pb2.GetLastStockValueResponse:
-        if not is_valid_email(request.email):
-            raise Exception("Email not valid")
-        
-        db = connect_to_db()
-
-        db_cursor = db.cursor()
-
-        db_query = f"SELECT\
-                        d.ticker AS ticker,\
-                        d.value AS last_value,\
-                        d.timestamp AS last_updated\
-                    FROM\
-                        data d\
-                    WHERE\
-                        d.ticker = (\
-                            SELECT u.ticker\
-                            FROM users u\
-                            WHERE u.email = '{request.email}'\
-                        )\
-                        AND d.timestamp = (\
-                            SELECT MAX(d1.timestamp)\
-                            FROM data d1\
-                            WHERE d1.ticker = d.ticker\
-                        )"
-
-        db_cursor.execute(db_query)
-
-        row = db_cursor.fetchone()
+        try:
+            get_last_stock_value_command = CQRS.GetLastStockValueCommand(request.email)
+            row = self.stock_service.handle_get_last_stock_value(get_last_stock_value_command)
+        except:
+            raise
 
         if row is None:
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "No value found")
@@ -91,39 +77,11 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
     def getStockPriceAverage(self,
                              request: hw1_pb2.GetStockPriceAverageRequest,
                              context) -> hw1_pb2.GetStockPriceAverageResponse:
-        if not is_valid_email(request.email):
-            raise Exception("Email not valid")
-        
-        db = connect_to_db()
-
-        db_cursor = db.cursor()
-        
-        db_query = f"SELECT\
-                        ticker,\
-                        AVG(value) AS average_value,\
-                        timestamp\
-                    FROM (\
-                        SELECT\
-                            d.ticker,\
-                            d.value,\
-                            d.timestamp\
-                        FROM\
-                            data d\
-                        WHERE\
-                            d.ticker = (\
-                                SELECT u.ticker\
-                                FROM users u\
-                                WHERE u.email = '{request.email}'\
-                            )\
-                        ORDER BY\
-                            d.timestamp DESC\
-                        LIMIT {request.num_values}\
-                    ) AS filtered_data\
-                    HAVING COUNT(*) = {request.num_values}"
-        
-        db_cursor.execute(db_query)
-
-        row = db_cursor.fetchone()
+        try:
+            get_stock_price_average_command = CQRS.GetStockPriceAverageCommand(request.email, request.num_values)
+            row = self.stock_service.handle_get_stock_price_average(get_stock_price_average_command)
+        except:
+            raise
 
         if row is None:
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Insufficient number of values")
@@ -137,7 +95,7 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
         
         return response
     
-def at_most_once(context, query: str, response_message: str) -> hw1_pb2.UserActionResponse:
+def at_most_once(context, request_cache: dict[str, hw1_pb2.UserActionResponse], handle_function, command, response_message: str) -> hw1_pb2.UserActionResponse:
         metadata = dict(context.invocation_metadata())
 
         email = metadata.get('email', 'unknown')
@@ -146,28 +104,23 @@ def at_most_once(context, query: str, response_message: str) -> hw1_pb2.UserActi
         print(f"New message received - Email: {email}, RequestID: {requestid}")
 
         with cache_lock:
-            print("Cache content:")
-            for entry in request_cache:
-                print(entry)
-
             # Check if the request ID has already been processed
             if requestid in request_cache:
                 print(f"Returning cached response for RequestID {requestid}")
                 # Return the cached response to ensure "at most once" processing
                 return request_cache[requestid]
              
-        try:
-            db = connect_to_db()
-            db_cursor = db.cursor()
-            db_cursor.execute(query)
-        except Exception as e:
-            print(f"MySQL error: {e}")
+        handle_function(command)
 
-        db.commit()
         response = hw1_pb2.UserActionResponse(outcome=response_message)
 
         with cache_lock:
             request_cache[requestid] = response
+
+            print("Cache content:")
+            for entry in request_cache:
+                print(entry)
+            print("\n")
 
         return response
 
