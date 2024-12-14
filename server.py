@@ -27,7 +27,6 @@ class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
             response_message = f"Email: {request.email}, Ticker: {request.ticker}, Low value: {request.low_value}, High value: {request.high_value}"
             return at_most_once(context, self.request_cache, self.manage_user_service.handle_register_user, register_user_command, response_message)
         except:
-            print("Except Register User")
             raise
         
     def UpdateTicker(self, request: hw1_pb2.UpdateTickerRequest, context) -> hw1_pb2.UserActionResponse:

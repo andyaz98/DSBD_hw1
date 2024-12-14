@@ -1,50 +1,34 @@
 import yfinance as yf
-from mysql import connector
 import numpy as np
 import time
 import random
+import cqrs_data_collector
 
 from circuit_breaker import CircuitBreaker, CircuitBreakerOpenException
 
 circuit_breaker = CircuitBreaker(failure_threshold=3, recovery_timeout=5)
 
 def data_collector():
+    tickers_service = cqrs_data_collector.TickersService()
+
     while(True):
-        db = connector.connect(
-        host="hw1_db_container",
-        user="andrea",
-        password="password",
-        database="hw1")
+        try:
+            db_tickers = [ticker[0] for ticker in tickers_service.handle_get_tickers()]
 
-        db_cursor = db.cursor()
-
-        db_query = "SELECT DISTINCT ticker FROM users"
-
-        db_cursor.execute(db_query)
-
-        db_tickers = [ticker[0] for ticker in db_cursor.fetchall()]
-
-        if len(db_tickers) == 0:
-            print("There are no tickers")
-            time.sleep(1)
-            continue
-
-        db_query = "INSERT INTO data (ticker, value) VALUES "
-        values = []
-        prices = safe_fetch_multiple_stock_prices(db_tickers)
-        if prices == None:
-            print("No prices for chosen tickers")
-            time.sleep(1)
-            continue
-
-        for ticker, value in prices.items():
-            if value is None:
+            if len(db_tickers) == 0:
+                print("There are no tickers")
+                time.sleep(1)
                 continue
-            values.append(f"('{ticker}', {value})")
-        db_query += ", ".join(values)
 
-        db_cursor.execute(db_query)
-        db.commit()
+            prices = safe_fetch_multiple_stock_prices(db_tickers)
+
+            add_values_command = cqrs_data_collector.AddValuesCommand(prices)
+
+            tickers_service.handle_add_values(add_values_command)
+        except:
+            time.sleep(1)
+            continue
+
         time.sleep(30 * 60) #Every 30 minutes
 
 def fetch_multiple_stock_prices(tickers: list[str]) -> dict[str, np.float64]:

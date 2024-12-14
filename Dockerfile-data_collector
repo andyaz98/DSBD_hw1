@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY circuit_breaker.py /app/
 COPY data_collector.py /app/
+COPY cqrs_data_collector.py /app/
 
 RUN pip install yfinance mysql-connector-python
 
