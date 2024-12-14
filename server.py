@@ -1,34 +1,38 @@
 from concurrent import futures
-import logging
 import grpc
 import hw1_pb2
 import hw1_pb2_grpc
-import time
 from threading import Lock
-import mysql.connector
-from email_verifier import is_valid_email
-import CQRS
+import cqrs_server
+import math
 
 # A lock to synchronize access to the cache for thread safety
 cache_lock = Lock()
 
 class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
     def __init__(self):
-        self.manage_user_service = CQRS.ManageUserService()
+        self.manage_user_service = cqrs_server.ManageUserService()
         self.request_cache = {} # A dictionary to store processed request IDs and their responses
 
     def RegisterUser(self, request: hw1_pb2.RegisterUserRequest, context) -> hw1_pb2.UserActionResponse:
+        if math.isinf(request.low_value) and math.isinf(request.high_value):
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "At least one between low and high value must be present")
+
+        if request.high_value < request.low_value:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Low value must be less than high value")
+
         try:
-            register_user_command = CQRS.RegisterUserCommand(request.email, request.ticker, request.low_value, request.high_value)
+            register_user_command = cqrs_server.RegisterUserCommand(request.email, request.ticker, request.low_value, request.high_value)
 
             response_message = f"Email: {request.email}, Ticker: {request.ticker}, Low value: {request.low_value}, High value: {request.high_value}"
             return at_most_once(context, self.request_cache, self.manage_user_service.handle_register_user, register_user_command, response_message)
         except:
+            print("Except Register User")
             raise
         
     def UpdateTicker(self, request: hw1_pb2.UpdateTickerRequest, context) -> hw1_pb2.UserActionResponse:
         try:
-            update_ticker_command = CQRS.UpdateTickerCommand(request.email, request.ticker)
+            update_ticker_command = cqrs_server.UpdateTickerCommand(request.email, request.ticker)
 
             response_message = f"Email: {request.email}, Ticker: {request.ticker}"
             return at_most_once(context, self.request_cache, self.manage_user_service.handle_update_ticker, update_ticker_command, response_message)
@@ -36,8 +40,14 @@ class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
             raise
     
     def UpdateTickerRange(self, request: hw1_pb2.UpdateTickerRangeRequest, context) -> hw1_pb2.UserActionResponse:
+        if math.isinf(request.low_value) and math.isinf(request.high_value):
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "At least one between low and high value must be present")
+
+        if request.high_value < request.low_value:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Low value must be less than high value")
+
         try:
-            update_ticker_range_command = CQRS.UpdateTickerRangeCommand(request.email, request.low_value, request.high_value)
+            update_ticker_range_command = cqrs_server.UpdateTickerRangeCommand(request.email, request.low_value, request.high_value)
 
             response_message = f"Email: {request.email}, Low value: {request.low_value}, High value: {request.high_value}"
             return at_most_once(context, self.request_cache, self.manage_user_service.handle_update_ticker_range, update_ticker_range_command, response_message)
@@ -46,7 +56,7 @@ class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
     
     def DeleteUser(self, request :hw1_pb2.DeleteUserRequest, context) -> hw1_pb2.UserActionResponse:
         try:
-            delete_user_command = CQRS.DeleteUserCommand(request.email)
+            delete_user_command = cqrs_server.DeleteUserCommand(request.email)
 
             response_message = f"Removed Email: {request.email}"
             return at_most_once(context, self.request_cache, self.manage_user_service.handle_delete_user, delete_user_command, response_message)
@@ -55,11 +65,11 @@ class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
     
 class StockService(hw1_pb2_grpc.StockServiceServicer):
     def __init__(self):
-        self.stock_service = CQRS.StockService()
+        self.stock_service = cqrs_server.StockService()
 
     def getLastStockValue(self, request: hw1_pb2.GetLastStockValueRequest, context) -> hw1_pb2.GetLastStockValueResponse:
         try:
-            get_last_stock_value_command = CQRS.GetLastStockValueCommand(request.email)
+            get_last_stock_value_command = cqrs_server.GetLastStockValueCommand(request.email)
             row = self.stock_service.handle_get_last_stock_value(get_last_stock_value_command)
         except:
             raise
@@ -78,7 +88,7 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
                              request: hw1_pb2.GetStockPriceAverageRequest,
                              context) -> hw1_pb2.GetStockPriceAverageResponse:
         try:
-            get_stock_price_average_command = CQRS.GetStockPriceAverageCommand(request.email, request.num_values)
+            get_stock_price_average_command = cqrs_server.GetStockPriceAverageCommand(request.email, request.num_values)
             row = self.stock_service.handle_get_stock_price_average(get_stock_price_average_command)
         except:
             raise
@@ -120,7 +130,6 @@ def at_most_once(context, request_cache: dict[str, hw1_pb2.UserActionResponse], 
             print("Cache content:")
             for entry in request_cache:
                 print(entry)
-            print("\n")
 
         return response
 
@@ -136,14 +145,6 @@ def serve():
     server.start()
     print("Service started, listening on " + port)
     server.wait_for_termination()
-
-def connect_to_db():
-    return mysql.connector.connect(
-        host="localhost",
-        user="andrea",
-        password="password",
-        database="hw1"
-    )
 
 if __name__ == '__main__':
     # Start the server without logs (no logging configuration)

@@ -43,22 +43,41 @@ def run():
         print("Type 1 for Manage User Service, 2 for Stock Service, then press ENTER")
         service = input()
         if service == "1":
-            print("Type 1 to register a new user, "
+            request = input("Type 1 to register a new user, "
                   "2 to update an existing user, "
                   "3 to update ticker range, "
-                  "4 to delete an existing user, then press ENTER")
-            request = input()
+                  "4 to delete an existing user, then press ENTER\n")
             if request == "1":
-                print("Insert the ticker of your interest, then press ENTER")
-                ticker = input()
+                ticker = input("Insert the ticker of your interest, then press ENTER\n")
 
-                print("Insert low value, then press ENTER")
-                low_value = input()
+                input_value = input("Insert low value, (press ENTER to confirm or skip)\n")
 
-                print("Insert high value, then press ENTER")
-                high_value = input()
+                if input_value == "":
+                    low_value = float("-inf")
+                else:
+                    try:
+                        low_value = float(input_value)
+                    except ValueError:
+                        print("Invalid input")
+                        continue
 
-                response = manage_user(int(request), email, ticker, float(low_value), float(high_value))
+                input_value = input("Insert high value, (press ENTER to confirm or skip)\n")
+                
+                if input_value == "":
+                    high_value = float("+inf")
+                else:
+                    try:
+                        high_value = float(input_value)
+                    except ValueError:
+                        print("Invalid input")
+                        continue
+                
+                try:
+                    response = manage_user(int(request), email, ticker, low_value, high_value)
+                except grpc.RpcError as e:
+                    print(e.details())
+                    continue
+
                 print("Response: ", response.outcome)
             elif request == "2":
                 print("Insert the new ticker, then press ENTER")
@@ -66,13 +85,34 @@ def run():
                 response = manage_user(int(request), email, ticker)
                 print("Response: ", response.outcome)
             elif request == "3":
-                print("Insert low value, then press ENTER")
-                low_value = input()
+                input_value = input("Insert low value, (press ENTER to confirm or skip)\n")
 
-                print("Insert high value, then press ENTER")
-                high_value = input()
+                if input_value == "":
+                    low_value = float("-inf")
+                else:
+                    try:
+                        low_value = float(input_value)
+                    except ValueError:
+                        print("Invalid input")
+                        continue
 
-                response = manage_user(int(request), email, low_value=float(low_value), high_value=float(high_value))
+                input_value = input("Insert high value, (press ENTER to confirm or skip)\n")
+                
+                if input_value == "":
+                    high_value = float("+inf")
+                else:
+                    try:
+                        high_value = float(input_value)
+                    except ValueError:
+                        print("Invalid input")
+                        continue
+                
+                try:
+                    response = manage_user(int(request), email, low_value=low_value, high_value=high_value)
+                except grpc.RpcError as e:
+                    print(e.details())
+                    continue
+            
                 print("Response: ", response.outcome)
             elif request == "4":
                 response = manage_user(int(request), email)
@@ -153,6 +193,9 @@ def manage_user(request: int, email: str, ticker: str = None, low_value: float =
                 elif e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
                     print(e)
                     time.sleep(5)
+
+                elif e.code() == grpc.StatusCode.INVALID_ARGUMENT:
+                    raise
                 
                 # Handle any other type of RPC error with a generic message
                 else:

@@ -8,6 +8,7 @@ COPY email_verifier.py /app/
 COPY hw1_pb2_grpc.py /app/
 COPY hw1_pb2.py /app/
 COPY hw1_pb2.pyi /app/
+COPY cqrs_server.py /app/
 
 RUN pip install grpcio grpcio-tools google-api-python-client mysql-connector-python
 CMD python server.py

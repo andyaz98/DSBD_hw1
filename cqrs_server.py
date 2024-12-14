@@ -1,6 +1,7 @@
 import mysql.connector
 from mysql.connector import Error
 from email_verifier import is_valid_email
+import math
 
 class RegisterUserCommand:
     def __init__(self, email: str, ticker: str, low_value: float, high_value: float):
@@ -38,9 +39,12 @@ class DeleteUserCommand:
     
 class ManageUserService:
     def handle_register_user(self, command: RegisterUserCommand):
+        low_value = "NULL" if math.isinf(command.low_value) else command.low_value
+        high_value = "NULL" if math.isinf(command.high_value) else command.high_value
+
         try:
             with OpenDBConnection() as cursor:
-                db_query = f"INSERT INTO users VALUES('{command.email}','{command.ticker}','{command.low_value}','{command.high_value}')"
+                db_query = f"INSERT INTO users VALUES('{command.email}','{command.ticker}',{low_value},{high_value})"
                 cursor.execute(db_query)
         except Error as e:
             print(f"Error during user registration: {e}")
@@ -56,9 +60,12 @@ class ManageUserService:
             raise
 
     def handle_update_ticker_range(self, command: UpdateTickerRangeCommand):
+        low_value = "NULL" if math.isinf(command.low_value) else command.low_value
+        high_value = "NULL" if math.isinf(command.high_value) else command.high_value
+
         try:
             with OpenDBConnection() as cursor:
-                db_query = f"UPDATE users SET low_value = '{command.low_value}', high_value = '{command.high_value}' WHERE email = '{command.email}'"
+                db_query = f"UPDATE users SET low_value = {low_value}, high_value = {high_value} WHERE email = '{command.email}'"
                 cursor.execute(db_query)
         except Error as e:
             print(f"Error during range of ticker updating: {e}")
