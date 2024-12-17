@@ -1,6 +1,7 @@
 from confluent_kafka import Consumer, Producer
 import json
 from datetime import datetime
+import cqrs_alert_system
 
 # ESEMPIO IN CUI IL CONUSUMER HA AUTO COMMIT ABILITATO E INOLTRE E' ANCHE PRODUCER
 
@@ -12,6 +13,7 @@ consumer_config = {
     'enable.auto.commit': True,  # Automatically commit offsets periodically
     'auto.commit.interval.ms': 5000  # Commit offsets every 5000ms (5 seconds)
 }
+
 producer_config = {
     # NB: se il producer viene inserito in un container va messo come indirizzo -> '<container_name>:<porta definita in PLAINTEXT>' es. 'kafka:9092'
     'bootstrap.servers': 'localhost:19092,localhost:29092,localhost:39092',  # Kafka broker address
@@ -27,14 +29,42 @@ producer = Producer(producer_config)
 alert_system_topic = "to-alert-system"  # Source topic for input messages
 notifier_topic = 'to-notifier'  # Destination topic for output statistics
 
-# List to hold values for calculating statistics
-values = []
-
 consumer.subscribe([alert_system_topic])  # Subscribe to TOPIC1
+
+def alert_system():
+    find_users_to_notify_service = cqrs_alert_system.FindUsersToNotifyService()
+
+    while True:
+        # Poll for new messages from TOPIC1
+        msg = consumer.poll(1.0)
+        if msg is None:
+            continue  # No message received, continue polling
+        if msg.error():
+            print(f"Consumer error: {msg.error()}")  # Log any consumer errors
+            continue
+        
+        # Parse the received message
+        data = json.loads(msg.value().decode('utf-8'))
+
+        if data["updated_tickers"]:
+            print(f"Message arrived with timestamp: {data["timestamp"]}")
+            rows = find_users_to_notify_service.handle_get_users()
+
+            for row in rows:
+                email, ticker, condition = row
+
+                message = {
+                'timestamp': datetime.now().isoformat(),
+                'email': email,
+                'ticker': ticker,
+                'condition': condition
+                }
+
+                produce_sync(producer, notifier_topic, json.dumps(message))
 
 def produce_sync(producer, topic, value):
     """
-    Synchronous producer function that blocks until the message is delivered.
+    Synchronous producer function that blocks until the message is sent.
     :param producer: Kafka producer instance
     :param topic: Kafka topic to send the message to
     :param value: Message value (string)
@@ -42,37 +72,10 @@ def produce_sync(producer, topic, value):
     try:
         # Produce the message synchronously
         producer.produce(topic, value)
-        producer.flush()  # Block until all outstanding messages are delivered
+        producer.flush()  # Block until all outstanding messages are sent
         print(f"Synchronously produced message to {topic}: {value}")
     except Exception as e:
-        print(f"Failed to produce message: {e}")
+        print(f"Failed to produce message: {e}") 
 
-while True:
-    # Poll for new messages from TOPIC1
-    msg = consumer.poll(1.0)
-    if msg is None:
-        continue  # No message received, continue polling
-    if msg.error():
-        print(f"Consumer error: {msg.error()}")  # Log any consumer errors
-        continue
-    
-    # Parse the received message
-    data = json.loads(msg.value().decode('utf-8'))
-    values.append(data['value'])  # Add the value to the list
-    
-    # Calculate statistics
-    avg_value = sum(values) / len(values)  # Average value
-    max_value = max(values)  # Maximum value
-    min_value = min(values)  # Minimum value
-    timestamp = datetime.now().isoformat()  # Get the current timestamp
-    
-    # Create a message with the calculated statistics
-    stats = {
-        'timestamp': timestamp,
-        'average': avg_value,
-        'max': max_value,
-        'min': min_value
-    }
-    
-    # Produce the statistics to TOPIC2 synchronously
-    produce_sync(producer, notifier_topic, json.dumps(stats))
+if __name__ == "__main__":
+    alert_system()

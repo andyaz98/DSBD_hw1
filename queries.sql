@@ -11,4 +11,3 @@ create table data (
 
 CREATE INDEX idx_timestamp ON data(timestamp);
 CREATE INDEX idx_ticker ON data(ticker);
-
