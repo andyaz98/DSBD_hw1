@@ -6,7 +6,9 @@ COPY circuit_breaker.py /app/
 COPY data_collector.py /app/
 COPY cqrs_data_collector.py /app/
 COPY open_db_connection.py /app/
+COPY cqrs_data_collector.py /app/
+COPY produce_sync.py /app/
 
-RUN pip install yfinance mysql-connector-python
+RUN pip install yfinance mysql-connector-python confluent-kafka numpy 
 
 CMD python data_collector.py

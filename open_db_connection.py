@@ -3,7 +3,7 @@ from mysql.connector import Error
 
 class OpenDBConnection:
     def __init__(self,
-                 host: str = "localhost",
+                 host: str = "hw1_db_container",
                  user: str = "andrea",
                  password: str = "password",
                  database: str = "hw1"):

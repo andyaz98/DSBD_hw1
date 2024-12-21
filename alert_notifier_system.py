@@ -3,13 +3,14 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from confluent_kafka import Consumer, KafkaException
 import json
+import time
 
-### ESEMPIO CON AUTO COMMIT CUSTOM
+time.sleep(30)
 
 # Kafka configuration for consumer
 consumer_config = {
-    'bootstrap.servers': 'localhost:19092,localhost:29092,localhost:39092',  # Address of the Kafka broker
-    'group.id': 'group1',  # Consumer group ID for managing offsets and load balancing
+    'bootstrap.servers': 'broker_1:9092,broker_2:9092,broker_3:9092',  # Address of the Kafka broker
+    'group.id': 'group2',  # Consumer group ID for managing offsets and load balancing
     'auto.offset.reset': 'earliest',  # Start reading from the earliest offset if no committed offset is found
     'enable.auto.commit': False  # Disable auto-commit to use manual offset management
 }
@@ -63,7 +64,6 @@ try:
         # Parse the message value (assumed to be in JSON format)
         data = json.loads(msg.value().decode('utf-8'))
 
-        #print(data)
 
         if data["condition"] == "high_value":
             body = "Dear customer\n\
@@ -78,9 +78,9 @@ try:
         else:
             continue
             
-        #recipient_email = data["email"]
-        #recipient_email = "yavifiy338@owube.com"
-        recipient_email = "ceyafas663@evusd.com"
+        recipient_email = data["email"]
+        #Testing email
+        #recipient_email = "prova@example.com"
         subject = data["ticker"]
 
         send_email(sender_email, sender_password, recipient_email, subject, body)

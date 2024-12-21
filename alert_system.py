@@ -2,21 +2,23 @@ from confluent_kafka import Consumer, Producer
 import json
 from datetime import datetime
 import cqrs_alert_system
+from produce_sync import produce_sync
+import time
 
-# ESEMPIO IN CUI IL CONUSUMER HA AUTO COMMIT ABILITATO E INOLTRE E' ANCHE PRODUCER
+time.sleep(30)
+
 
 # Kafka configuration for consumer and producer
 consumer_config = {
-    'bootstrap.servers': 'localhost:19092,localhost:29092,localhost:39092',  # Kafka broker address
+    'bootstrap.servers': 'broker_1:9092,broker_2:9092,broker_3:9092',  # Kafka broker address
     'group.id': 'group1',  # Consumer group ID
     'auto.offset.reset': 'earliest',  # Start reading from the earliest message
-    'enable.auto.commit': True,  # Automatically commit offsets periodically
-    'auto.commit.interval.ms': 5000  # Commit offsets every 5000ms (5 seconds)
+    'enable.auto.commit': False
 }
 
 producer_config = {
     # NB: se il producer viene inserito in un container va messo come indirizzo -> '<container_name>:<porta definita in PLAINTEXT>' es. 'kafka:9092'
-    'bootstrap.servers': 'localhost:19092,localhost:29092,localhost:39092',  # Kafka broker address
+    'bootstrap.servers': 'broker_1:9092,broker_2:9092,broker_3:9092',  # Kafka broker address
     'acks': 'all',  # Ensure all in-sync replicas acknowledge the message
     'batch.size': 500,  # Maximum number of bytes to batch in a single request
     'max.in.flight.requests.per.connection': 1,  # Only one in-flight request per connection
@@ -61,21 +63,8 @@ def alert_system():
                 }
 
                 produce_sync(producer, notifier_topic, json.dumps(message))
+                consumer.commit(asynchronous=True)
 
-def produce_sync(producer, topic, value):
-    """
-    Synchronous producer function that blocks until the message is sent.
-    :param producer: Kafka producer instance
-    :param topic: Kafka topic to send the message to
-    :param value: Message value (string)
-    """
-    try:
-        # Produce the message synchronously
-        producer.produce(topic, value)
-        producer.flush()  # Block until all outstanding messages are sent
-        print(f"Synchronously produced message to {topic}: {value}")
-    except Exception as e:
-        print(f"Failed to produce message: {e}") 
 
 if __name__ == "__main__":
     alert_system()

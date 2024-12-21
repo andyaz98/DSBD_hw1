@@ -5,6 +5,8 @@ services:
         environment:
             ZOOKEEPER_CLIENT_PORT: 2181
             ZOOKEEPER_TICK_TIME: 2000
+        depends_on:
+            - db
 
     kafka-broker-1:
         container_name: broker_1
@@ -20,8 +22,6 @@ services:
             KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
             KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
             KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-        volumes:
-            - ./create_topics.sh:/etc/kafka/create_topics.sh
 
     kafka-broker-2:
         container_name: broker_2
@@ -67,7 +67,56 @@ services:
         container_name: hw1_db_container
         ports:
             - 3306:3306
+    create_topics:
+        build:
+            context: .
+            dockerfile: Dockerfile-create-topics
+        container_name: hw1_create_topics_container
+        depends_on:
+            - kafka-broker-1
+            - kafka-broker-2
+            - kafka-broker-3
+        restart: on-failure
+        tty: true
+    server:
+        build:
+            context: .
+            dockerfile: Dockerfile-server
+        ports:
+            - 50051:50051
+        container_name: hw1_server_container
+        depends_on:
+            - db
+        restart: always
+        tty: true
 
+    data_collector:
+        build:
+            context: .
+            dockerfile: Dockerfile-data_collector
+        container_name: hw1_data_collector_container
+        depends_on:
+            - create_topics
+        restart: always
+        tty: true
+    alert_notifier_system:
+        build:
+            context: .
+            dockerfile: Dockerfile-alert_notifier_system
+        container_name: hw1_alert_notifier_system_container
+        depends_on:
+            - create_topics
+        restart: always
+        tty: true
+    alert_system:
+        build:
+            context: .
+            dockerfile: Dockerfile-alert_system
+        container_name: hw1_alert_system_container
+        depends_on:
+            - create_topics
+        restart: always
+        tty: true
 volumes:
     hw1_volume:
         driver: local

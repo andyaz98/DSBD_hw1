@@ -19,3 +19,22 @@ server:
             - db
         restart: always
         tty: true
+    alert_notifier_system:
+        build:
+            context: .
+            dockerfile: Dockerfile-alert_notifier_system
+        container_name: hw1_alert_notifier_system_container
+        depends_on:
+            - db
+        restart: always
+        tty: true
+    alert_system:
+        build:
+            context: .
+            dockerfile: Dockerfile-alert_system
+        container_name: hw1_alert_system_container
+        depends_on:
+            - db
+        restart: always
+        tty: true
+
