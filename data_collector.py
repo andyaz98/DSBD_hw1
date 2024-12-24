@@ -8,6 +8,7 @@ from confluent_kafka import Producer
 import json
 from datetime import datetime
 from produce_sync import produce_sync
+import data_collector_exporter
 
 time.sleep(30)
 
@@ -37,11 +38,15 @@ def data_collector():
                 time.sleep(1)
                 continue
 
+            start = time.time()
+
             prices = safe_fetch_multiple_stock_prices(db_tickers)
-
             add_values_command = cqrs_data_collector.AddValuesCommand(prices)
-
             tickers_service.handle_add_values(add_values_command)
+
+            end = time.time()
+            duration = end - start
+            data_collector_exporter.UPDATE_TIME.labels(service='data_collector', node=data_collector_exporter.HOSTNAME).set(duration)
         except:
             time.sleep(1)
             continue
@@ -51,8 +56,8 @@ def data_collector():
 
         produce_sync(producer, topic, json.dumps(message))
         
-        time.sleep(30 * 60) #Every 30 minutes
-        #time.sleep(5)
+        #time.sleep(30 * 60) #Every 30 minutes
+        time.sleep(1)
 
 def fetch_multiple_stock_prices(tickers: list[str]) -> dict[str, np.float64]:
     #Test 
@@ -88,3 +93,4 @@ def delivery_report(err, msg):
 
 if __name__ == "__main__":
     data_collector()
+    

@@ -5,9 +5,15 @@ import hw1_pb2_grpc
 from threading import Lock
 import cqrs_server
 import math
+import server_exporter
+import time
+
+
 
 # A lock to synchronize access to the cache for thread safety
 cache_lock = Lock()
+# A lock to synchronize access to the request count for thread safety
+request_count_lock = Lock()
 
 class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
     def __init__(self):
@@ -15,6 +21,7 @@ class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
         self.request_cache = {} # A dictionary to store processed request IDs and their responses
 
     def RegisterUser(self, request: hw1_pb2.RegisterUserRequest, context) -> hw1_pb2.UserActionResponse:
+        increment_counter()
         if math.isinf(request.low_value) and math.isinf(request.high_value):
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "At least one between low and high value must be present")
 
@@ -30,6 +37,7 @@ class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
             raise
         
     def UpdateTicker(self, request: hw1_pb2.UpdateTickerRequest, context) -> hw1_pb2.UserActionResponse:
+        increment_counter()
         try:
             update_ticker_command = cqrs_server.UpdateTickerCommand(request.email, request.ticker)
 
@@ -39,6 +47,7 @@ class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
             raise
     
     def UpdateTickerRange(self, request: hw1_pb2.UpdateTickerRangeRequest, context) -> hw1_pb2.UserActionResponse:
+        increment_counter()
         if math.isinf(request.low_value) and math.isinf(request.high_value):
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "At least one between low and high value must be present")
 
@@ -54,6 +63,7 @@ class ManageUserService(hw1_pb2_grpc.ManageUserServiceServicer):
             raise
     
     def DeleteUser(self, request :hw1_pb2.DeleteUserRequest, context) -> hw1_pb2.UserActionResponse:
+        increment_counter()
         try:
             delete_user_command = cqrs_server.DeleteUserCommand(request.email)
 
@@ -67,6 +77,7 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
         self.stock_service = cqrs_server.StockService()
 
     def getLastStockValue(self, request: hw1_pb2.GetLastStockValueRequest, context) -> hw1_pb2.GetLastStockValueResponse:
+        increment_counter()
         try:
             get_last_stock_value_command = cqrs_server.GetLastStockValueCommand(request.email)
             row = self.stock_service.handle_get_last_stock_value(get_last_stock_value_command)
@@ -86,6 +97,8 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
     def getStockPriceAverage(self,
                              request: hw1_pb2.GetStockPriceAverageRequest,
                              context) -> hw1_pb2.GetStockPriceAverageResponse:
+        increment_counter()
+        start = time.time()
         try:
             get_stock_price_average_command = cqrs_server.GetStockPriceAverageCommand(request.email, request.num_values)
             row = self.stock_service.handle_get_stock_price_average(get_stock_price_average_command)
@@ -102,6 +115,9 @@ class StockService(hw1_pb2_grpc.StockServiceServicer):
                                                         num_values=request.num_values,
                                                         timestamp=str(timestamp))
         
+        end = time.time()
+        duration = end - start
+        server_exporter.RESPONSE_TIME_GET_STOCK_PRICE_AVERAGE.labels(service='server', node=server_exporter.HOSTNAME).set(duration)
         return response
     
 def at_most_once(context, request_cache: dict[str, hw1_pb2.UserActionResponse], handle_function, command, response_message: str) -> hw1_pb2.UserActionResponse:
@@ -131,6 +147,11 @@ def at_most_once(context, request_cache: dict[str, hw1_pb2.UserActionResponse], 
                 print(entry)
 
         return response
+
+def increment_counter():
+    with request_count_lock:
+        server_exporter.REQUESTS_COUNT.labels(service='server', node=server_exporter.HOSTNAME).inc()
+
 
 def serve():
     port = '50051'

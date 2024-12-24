@@ -52,7 +52,44 @@ services:
             KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
             KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
             KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-        #--------------------------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------------------------
+    prometheus:
+        image: prom/prometheus:latest
+        volumes:
+            - ./prometheus/:/etc/prometheus/
+            - prometheus_data:/prometheus
+        command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+            - '--web.console.templates=/usr/share/prometheus/consoles'
+            - '--web.enable-lifecycle'
+        ports:
+            - 53120:9090
+        links:
+            - cadvisor:cadvisor
+            #- alertmanager:alertmanager
+        depends_on:
+            - cadvisor
+        restart: always
+        deploy:
+            mode: global
+
+    cadvisor:
+        image: gcr.io/cadvisor/cadvisor:v0.47.2
+        privileged: true
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - /var/lib/docker/:/var/lib/docker:ro
+            - /tmp:/tmp:ro
+            - /etc/machine-id:/etc/machine-id:ro
+
+        ports:
+            - 8080:8080
+        restart: always
+        deploy:
+            mode: global
+    #--------------------------------------------------------------------------------------------------------
     db:
         build:
             context: .
@@ -84,6 +121,7 @@ services:
             dockerfile: Dockerfile-server
         ports:
             - 50051:50051
+            - 5555:5555
         container_name: hw1_server_container
         depends_on:
             - db
@@ -99,6 +137,8 @@ services:
             - create_topics
         restart: always
         tty: true
+        ports:
+            - 7777:7777
     alert_notifier_system:
         build:
             context: .
@@ -120,3 +160,4 @@ services:
 volumes:
     hw1_volume:
         driver: local
+    prometheus_data: {}
