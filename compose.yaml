@@ -68,12 +68,12 @@ services:
             - 53120:9090
         links:
             - cadvisor:cadvisor
-            #- alertmanager:alertmanager
         depends_on:
             - cadvisor
         restart: always
         deploy:
             mode: global
+        container_name: prometheus
 
     cadvisor:
         image: gcr.io/cadvisor/cadvisor:v0.47.2

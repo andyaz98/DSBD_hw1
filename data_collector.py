@@ -39,6 +39,7 @@ def data_collector():
                 continue
 
             start = time.time()
+            
 
             prices = safe_fetch_multiple_stock_prices(db_tickers)
             add_values_command = cqrs_data_collector.AddValuesCommand(prices)
@@ -48,6 +49,7 @@ def data_collector():
             duration = end - start
             data_collector_exporter.UPDATE_TIME.labels(service='data_collector', node=data_collector_exporter.HOSTNAME).set(duration)
         except:
+            data_collector_exporter.ERROR_COUNT.labels(service="data_collector", node=data_collector_exporter.HOSTNAME).inc()
             time.sleep(1)
             continue
 
