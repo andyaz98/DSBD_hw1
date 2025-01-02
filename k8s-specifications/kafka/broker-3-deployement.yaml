@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: broker-3
+  name: broker-3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: broker-3
+  template:
+    metadata:
+      labels:
+        app: broker-3
+    spec:
+      containers:
+      - image: confluentinc/cp-kafka:latest
+        name: broker-3
+        env:
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: 'zookeeper:2181'
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: 'PLAINTEXT://broker-3:9094,PLAINTEXT_HOST://localhost:19094'
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+          value: 'PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+        - name: KAFKA_INTER_BROKER_LISTENER_NAME
+          value: 'PLAINTEXT'
+        - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+          value: '3'
+        ports:
+        - containerPort: 9094
+          name: broker-3
+

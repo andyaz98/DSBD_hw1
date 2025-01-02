@@ -9,7 +9,7 @@ time.sleep(30)
 
 # Kafka configuration for consumer
 consumer_config = {
-    'bootstrap.servers': 'broker_1:9092,broker_2:9092,broker_3:9092',  # Address of the Kafka broker
+    'bootstrap.servers': 'broker-1:9092,broker-2:9093,broker-3:9094',  # Address of the Kafka broker
     'group.id': 'group2',  # Consumer group ID for managing offsets and load balancing
     'auto.offset.reset': 'earliest',  # Start reading from the earliest offset if no committed offset is found
     'enable.auto.commit': False  # Disable auto-commit to use manual offset management

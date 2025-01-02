@@ -10,7 +10,7 @@ time.sleep(30)
 
 # Kafka configuration for consumer and producer
 consumer_config = {
-    'bootstrap.servers': 'broker_1:9092,broker_2:9092,broker_3:9092',  # Kafka broker address
+    'bootstrap.servers': 'broker-1:9092,broker-2:9093,broker-3:9094',  # Kafka broker address
     'group.id': 'group1',  # Consumer group ID
     'auto.offset.reset': 'earliest',  # Start reading from the earliest message
     'enable.auto.commit': False
@@ -18,7 +18,7 @@ consumer_config = {
 
 producer_config = {
     # NB: se il producer viene inserito in un container va messo come indirizzo -> '<container_name>:<porta definita in PLAINTEXT>' es. 'kafka:9092'
-    'bootstrap.servers': 'broker_1:9092,broker_2:9092,broker_3:9092',  # Kafka broker address
+    'bootstrap.servers': 'broker-1:9092,broker-2:9093,broker-3:9094',  # Kafka broker address
     'acks': 'all',  # Ensure all in-sync replicas acknowledge the message
     'batch.size': 500,  # Maximum number of bytes to batch in a single request
     'max.in.flight.requests.per.connection': 1,  # Only one in-flight request per connection

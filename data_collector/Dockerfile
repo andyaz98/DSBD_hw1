@@ -6,7 +6,6 @@ COPY circuit_breaker.py /app/
 COPY data_collector.py /app/
 COPY cqrs_data_collector.py /app/
 COPY open_db_connection.py /app/
-COPY cqrs_data_collector.py /app/
 COPY produce_sync.py /app/
 COPY data_collector_exporter.py /app/
 

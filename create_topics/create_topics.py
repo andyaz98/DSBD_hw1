@@ -3,7 +3,7 @@ import time
 
 time.sleep(20)
 
-bootstrap_servers = "broker_1:9092"  
+bootstrap_servers = "broker-1:9092"  
 
 while True:
     try:

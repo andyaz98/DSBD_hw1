@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: alert-notifier-system
+  name: alert-notifier-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alert-notifier-system
+  template:
+    metadata:
+      labels:
+        app: alert-notifier-system
+    spec:
+      containers:
+      - image: andyaz/alert-notifier-system:latest
+        name: alert-notifier-system
+
