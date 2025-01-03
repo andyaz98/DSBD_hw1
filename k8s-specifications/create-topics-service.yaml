@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: create-topics
+  name: create-topics
+spec:
+  type: ClusterIP
+  ports:
+  - name: "create-topics-service"
+    port: 2222
+    targetPort: 2222
+  selector:
+    app: create-topics
+

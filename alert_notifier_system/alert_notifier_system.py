@@ -69,12 +69,12 @@ try:
             body = "Dear customer\n\
                     We inform you that the value of the ticker in question has exceeded the maximum threshold you have defined.\n\
                     Kind regards,\n\
-                    The Homework 2 Team."
+                    The Claude Team."
         elif data["condition"] == "low_value":
             body = "Dear customer\n\
                     We inform you that the value of the ticker in question has dropped below the minimum threshold you have defined.\n\
                     Kind regards,\n\
-                    The Homework 2 Team."
+                    The Claude Team."
         else:
             continue
             

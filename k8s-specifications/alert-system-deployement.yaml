@@ -17,4 +17,8 @@ spec:
       containers:
       - image: andyaz/alert-system:latest
         name: alert-system
+      initContainers:
+        - name: init-container
+          image: busybox
+          command: ['sh', '-c', 'until nc -zv create-topics 2222; do echo "Waiting for create-topics..."; sleep 2; done']
 

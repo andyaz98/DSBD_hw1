@@ -7,7 +7,7 @@ from functools import wraps
 from email_verifier import is_valid_email
 
 # Set the target server address
-target = 'localhost:50051'
+target = '127.0.0.1:51383'
 
 #TODO: Controllare altri codici di errore   
 def send_request(request_method, request, metadata: list[tuple[str, str]] = None, timeout: int = 10):

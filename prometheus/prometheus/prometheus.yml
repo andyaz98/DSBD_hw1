@@ -37,8 +37,5 @@ scrape_configs:
     static_configs:
          - targets:
            - localhost:9090
-           #- 172.17.0.1:9999
-           - hw1_data_collector_container:7777
-           - hw1_server_container:5555
-           - cadvisor:8080
-           #- 172.17.0.1:53122
+           - data-collector:7777
+           - server:5555

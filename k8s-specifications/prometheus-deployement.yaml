@@ -15,7 +15,7 @@ spec:
         app: prometheus
     spec:
       containers:
-      - image: prom/prometheus:latest
+      - image: andyaz/prometheus:latest
         name: prometheus
         args:
           - '--config.file=/etc/prometheus/prometheus.yml'
@@ -27,14 +27,9 @@ spec:
         - containerPort: 9090
           name: prometheus
         volumeMounts:
-        - name: prometheus-config
-          mountPath: /etc/prometheus
         - name: prometheus-data
           mountPath: /prometheus
       volumes:
-      - name: prometheus-config
-        hostPath:
-          path: ./prometheus/
       - name: prometheus-data
         emptyDir: {}
 

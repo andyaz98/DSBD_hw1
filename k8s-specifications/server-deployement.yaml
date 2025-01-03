@@ -20,4 +20,10 @@ spec:
         ports:
         - containerPort: 50051
           name: server
+        - containerPort: 5555
+          name: server-metrics
+      initContainers:
+        - name: init-container
+          image: busybox
+          command: ['sh', '-c', 'until nc -zv db 3306; do echo "Waiting for db..."; sleep 2; done']
 

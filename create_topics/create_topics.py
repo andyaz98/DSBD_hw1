@@ -1,24 +1,40 @@
 from confluent_kafka.admin import AdminClient, NewTopic
 import time
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import threading
 
+bootstrap_servers = "broker-1:9092"
+
+# Definizione di un semplice handler per il server HTTP
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Service is up!")
+
+# Funzione per avviare il server HTTP
+def start_http_server():
+    server = HTTPServer(('0.0.0.0', 2222), SimpleHandler)
+    print("HTTP server running on port 2222...")
+    server.serve_forever()
+
+# Ritardo iniziale
 time.sleep(20)
 
-bootstrap_servers = "broker-1:9092"  
-
+# Creazione dei topic
 while True:
     try:
         admin_client = AdminClient({'bootstrap.servers': bootstrap_servers})
 
-        new_topic = [NewTopic('to-notifier', num_partitions=1, replication_factor=3), 
-                    NewTopic('to-alert-system', num_partitions=1, replication_factor=3)]
+        new_topic = [NewTopic('to-notifier', num_partitions=1, replication_factor=3),
+                     NewTopic('to-alert-system', num_partitions=1, replication_factor=3)]
         
-        # Create topics
+        # Creazione dei topic
         fs = admin_client.create_topics(new_topics=new_topic)
         
-        # Wait for each operation to finish
         for topic, f in fs.items():
             try:
-                f.result()  # The result itself is None
+                f.result()  # Il risultato è None se l'operazione ha successo
                 print(f"Topic {topic} created successfully")
             except Exception as e:
                 print(f"Failed to create topic {topic}: {e}")
@@ -45,3 +61,8 @@ def list_kafka_topics(bootstrap_servers):
 # Specifica l'indirizzo del broker Kafka
 
 list_kafka_topics(bootstrap_servers)
+
+# Avvia il server HTTP in un thread separato
+start_http_server()
+""" thread = threading.Thread(target=start_http_server, daemon=True)
+thread.start() """

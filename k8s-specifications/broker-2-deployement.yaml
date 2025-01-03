@@ -32,3 +32,9 @@ spec:
         - containerPort: 9093
           name: broker-2
 
+      initContainers:
+      - name: init-container
+        image: busybox
+        command: ['sh', '-c', 'until nc -zv zookeeper 2181; do echo "Waiting for zookeeper..."; sleep 2; done']
+        
+
