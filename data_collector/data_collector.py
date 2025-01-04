@@ -58,8 +58,8 @@ def data_collector():
 
         produce_sync(producer, topic, json.dumps(message))
         
-        #time.sleep(30 * 60) #Every 30 minutes
-        time.sleep(1)
+        time.sleep(30 * 60) #Every 30 minutes
+        #time.sleep(1)
 
 def fetch_multiple_stock_prices(tickers: list[str]) -> dict[str, np.float64]:
     #Test 

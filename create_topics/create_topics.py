@@ -62,7 +62,5 @@ def list_kafka_topics(bootstrap_servers):
 
 list_kafka_topics(bootstrap_servers)
 
-# Avvia il server HTTP in un thread separato
+# Avvio il server HTTP in modo tale da poter verificare che il servizio sia attivo
 start_http_server()
-""" thread = threading.Thread(target=start_http_server, daemon=True)
-thread.start() """

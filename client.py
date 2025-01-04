@@ -5,9 +5,14 @@ import uuid #Universally Unique Identifier
 import time
 from functools import wraps
 from email_verifier import is_valid_email
+import argparse
 
 # Set the target server address
-target = '127.0.0.1:51383'
+parser = argparse.ArgumentParser(description="Homework3 Client")
+parser.add_argument("port", type=str, help="Port of the server")
+args = parser.parse_args()
+
+target = f"127.0.0.1:{args.port}"
 
 #TODO: Controllare altri codici di errore   
 def send_request(request_method, request, metadata: list[tuple[str, str]] = None, timeout: int = 10):

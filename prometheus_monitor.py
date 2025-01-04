@@ -24,10 +24,11 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--service",  type=str, help="specify the service you want to monitor")
     parser.add_argument("-m", "--metric",  type=str, help="specify the metric you are interested in")
     parser.add_argument("-r", "--range", type=int, help="specify the temporal range in minutes")
+    parser.add_argument("port", type=str, help="specify the port of the prometheus server")
 
     args = parser.parse_args()
 
-    prom = PrometheusConnect(url="http://localhost:53120/", disable_ssl=True)
+    prom = PrometheusConnect(url=f"http://127.0.0.1:{args.port}/", disable_ssl=True)
 
     #define labels
     start_time = f"{args.range}m" if args.range else (datetime.now() - timedelta(days=1))
